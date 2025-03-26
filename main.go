@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net"
 )
@@ -62,9 +64,16 @@ func (s *Server) readLoop(conn net.Conn) {
 	for {
 		n, err := conn.Read(buf)
 		if err != nil {
+			if errors.Is(err, io.EOF) {
+				fmt.Println("Connection clossed:", conn.RemoteAddr())
+				conn.Close()
+				return
+			}
 			fmt.Println("read error:", err)
 			continue
 		}
+
+
 
 		s.msgch <- Message{
 			from: conn.RemoteAddr().String(),
